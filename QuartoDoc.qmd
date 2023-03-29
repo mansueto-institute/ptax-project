@@ -1,13 +1,23 @@
----
-title: "Property Tax Explainer"
-format: html
-editor: visual
-tbl-colwidths: [75,25]
----
 
 ```{r setup, include=FALSE}
-setwd("/users/sarahlueling/downloads/mansuetoquarto")
+setwd("/users/monicanimmagadda/ptax-project")
 ```
+![](chicago.jpeg)
+
+## Introduction
+
+Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+
+Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+
+Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+
+## What are property taxes?
+
+Property taxes are askdjadkjfaskdfjaksjfhasjkfaskjf
+aksdhaksjdfajksfdasdfh
+
+ashdklfakjhfcaj
 
 ## How do property taxes work?
 
@@ -24,6 +34,7 @@ First, let's take a look at tax rates...
 ![](picture1.png)
 :::
 :::
+
 
 ## How do we calculate tax rate?
 
@@ -53,16 +64,14 @@ The total taxable value of all properties in [**Riverside**]{style="color:purple
 
 Using real numbers, the tax rate equals: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
 
-
-
 ## How much of this tax rate do you pay?
 
 This **rate** is then applied to your **property's taxable value**:
 
 The rate and tax amount then appear as a line item on your tax bill:
 
-| District                                          | Levy/Base        | 2021 Rate | 2021 Tax |
-|----------------------------------|-------------|-------------|-------------|
+| District                                          | Levy/Base                 | 2021 Rate | 2021 Tax |
+|-----------------------------|---------------|---------------|---------------|
 | [**Village of Riverside**]{style="color:purple;"} | $\mathrm{{6M\over 319M}}$ | 1.857%    | \$2,865  |
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
@@ -73,8 +82,8 @@ There's also [**Elementary School District 96**]{style="color:orange;"} , which 
 
 It adds another line item to your tax bill...
 
-| District                                                   | Levy/Base                | 2021 Rate | 2021 Tax |
-|----------------------------------|-------------|-------------|-------------|
+| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-----------------------------|---------------|---------------|---------------|
 | [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
 | [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 
@@ -82,8 +91,8 @@ You must also pay [**Riverside Township**]{style="color:green;"}
 
 ![](picture7.png){width="35%"}
 
-| District                                                   | Levy/Base                | 2021 Rate | 2021 Tax |
-|----------------------------------|-------------|-------------|-------------|
+| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-----------------------------|---------------|---------------|---------------|
 | [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
 | [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 | [**Riverside Township**]{style="color:green;"}             | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
@@ -92,8 +101,8 @@ And [**Brookfield High School District 208**]{style="color:blue;"}
 
 ![](picture8.png){width="35%"}
 
-| District                                                       | Levy/Base                | 2021 Rate | 2021 Tax |
-|-----------------------------------|-------------|-------------|-------------|
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-----------------------------|--------------|--------------|--------------|
 | [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
 | [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 | [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
@@ -101,8 +110,8 @@ And [**Brookfield High School District 208**]{style="color:blue;"}
 
 And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
 
-| District                                                       | Levy/Base                | 2021 Rate | 2021 Tax |
-|-----------------------------------|-------------|-------------|-------------|
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-----------------------------|--------------|--------------|--------------|
 | [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
 | [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 | [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
@@ -111,8 +120,8 @@ And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;
 
 ![](picture9.png){width="35%"}
 
-| District                                                       | Levy/Base                | 2021 Rate | 2021 Tax |
-|-----------------------------------|-------------|-------------|-------------|
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-----------------------------|--------------|--------------|--------------|
 | [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
 | [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 | [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
@@ -123,15 +132,15 @@ And so on:
 
 ![](picture11.png){width="35%"}
 
-| District                                                       | Levy/Base                    | 2021 Rate | 2021 Tax |
-|---------------------------------|--------------|-------------|-------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$    | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$     | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$          | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$         | 3.234%    | \$4,989  |
-| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$          | 0.315%    | \$485    |
-| [**MSWR**]{style="color:navy;"}                                | $\mathrm{{660M\over 162B+..}}$        | 0.382%    | \$589    |
-| [**Cook County**]{style="color:black;"}                        | $\mathrm{{783M\over 13B+..}}$         | 0.446%    | \$688    |
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|----------------------------|---------------|---------------|---------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+| [**MSWR**]{style="color:navy;"}                                | $\mathrm{{660M\over 162B+..}}$    | 0.382%    | \$589    |
+| [**Cook County**]{style="color:black;"}                        | $\mathrm{{783M\over 13B+..}}$     | 0.446%    | \$688    |
 
 ## Now let's compare this to the bill above
 
