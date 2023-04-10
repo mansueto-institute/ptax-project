@@ -1,0 +1,459 @@
+
+```{r setup, include=FALSE}
+
+library(data.table)
+library(dplyr)
+library(here)
+library(ggplot2)
+library(ggspatial)
+library(glue)
+library(ptaxsim)
+library(sf)
+library(tidyr)
+library(htmlwidgets)
+library(plotly)
+
+
+
+ptaxsim_db_conn <- DBI::dbConnect(RSQLite::SQLite(), here("ptaxsim.db"))
+
+example_pin10 <- "1536100028"
+example_pin14 <- "15361000280000"
+```
+
+```{r, echo=FALSE, warning=FALSE}
+
+shp_bnd_cook <- read_sf(paste0(
+  "https://opendata.arcgis.com/api/v3/datasets/",
+  "ea127f9e96b74677892722069c984198_1/downloads/data?",
+  "format=geojson&spatialRefId=4326&where=1%3D1"
+)) %>%
+  select(geometry) %>%
+  st_transform(3435)
+
+shp_bnd_municipalities <- read_sf(paste0(
+  "https://opendata.arcgis.com/api/v3/datasets/",
+  "534226c6b1034985aca1e14a2eb234af_2/downloads/data?",
+  "format=geojson&spatialRefId=4326&where=1%3D1"
+))
+
+shp_bnd_riverside <- shp_bnd_municipalities %>% 
+  filter(AGENCY_DESC == "VILLAGE OF RIVERSIDE") %>%
+  select(agency = AGENCY, name = AGENCY_DESC) %>%
+  mutate(agency = "31090000")
+
+shp_bnd_chicago <- shp_bnd_municipalities %>%
+  filter(AGENCY_DESC == "CITY OF CHICAGO") %>%
+  select(agency = AGENCY, name = AGENCY_DESC)
+
+shp_bnd_example_pin <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "77tz-riq7.geojson?pin10={example_pin10}"))
+
+shp_bnd_riverside_pins <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "77tz-riq7.geojson?MUNICIPALITY=Riverside&$limit=100000"
+)) %>%
+  select(pin10, geometry) %>%
+  filter(as.logical(st_intersects(st_centroid(.), shp_bnd_riverside)))
+
+shp_bnd_elem_dist <- read_sf(paste0(
+  "https://opendata.arcgis.com/api/v3/datasets/",
+  "cbcf6b1c3aaa420d90ccea6af877562b_2/downloads/data?",
+  "format=geojson&spatialRefId=4326&where=1%3D1"
+)) %>%
+  filter(AGENCY_DESCRIPTION == "SCHOOL DISTRICT 96")
+
+shp_bnd_elem_dist_pins <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "77tz-riq7.geojson?elemschltaxdist=SCHOOL%20DISTRICT%2096",
+  "&$limit=100000"
+)) %>%
+  filter(!pin10 %in% shp_bnd_riverside_pins$pin10) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_riverside))))
+
+shp_bnd_township <- read_sf(paste0(
+  "https://opendata.arcgis.com/api/v3/datasets/",
+  "78fe09c5954e41e19b65a4194eed38c7_3/downloads/data?",
+  "format=geojson&spatialRefId=4326&where=1%3D1"
+)) %>%
+  filter(NAME == "RIVERSIDE")
+
+shp_bnd_township_pins <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "77tz-riq7.geojson?politicaltownship=Town%20of%20Riverside",
+  "&$limit=50000"
+)) %>%
+  filter(!pin10 %in% shp_bnd_riverside_pins$pin10) %>%
+  filter(!pin10 %in% shp_bnd_elem_dist_pins$pin10) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_riverside)))) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_elem_dist))))
+
+shp_bnd_hs_dist <- read_sf(paste0(
+  "https://opendata.arcgis.com/api/v3/datasets/",
+  "0657c2831de84e209863eac6c9296081_6/downloads/data?",
+  "format=geojson&spatialRefId=4326&where=1%3D1"
+)) %>%
+  filter(AGENCY_DESC == "RIVERSIDE BROOKFIELD HIGH SCHOOL 208")
+
+shp_bnd_hs_dist_pins <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "77tz-riq7.geojson?highschltaxdist=RIVERSIDE%20BROOKFIELD%20HIGH%20SCHOOL%20208",
+  "&$limit=50000"
+)) %>%
+  filter(!pin10 %in% shp_bnd_riverside_pins$pin10) %>%
+  filter(!pin10 %in% shp_bnd_elem_dist_pins$pin10) %>%
+  filter(!pin10 %in% shp_bnd_township_pins$pin10) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_riverside)))) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_elem_dist)))) %>%
+  filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_township))))
+
+```
+
+![](chicago.jpeg)
+
+## Introduction
+
+Cook County relies on property taxes to serve its residents. Find out how your property tax is calculated by reading our guide.
+
+The Cook County Assessor's Office, the State, and county taxing districts (schools, parks, etc.) work together to calculate fair property taxes for residents.
+
+Let's talk a more thorough look at this outline below.
+
+![](outline_pic.png)
+
+## How do property taxes work?
+
+::: columns
+::: {.column width="50%"}
+Let's take a look at a **property tax bill**.
+
+This is confusing. Let's zoom out and explain what this all means and how we calculate these numbers.
+
+First, let's take a look at tax rates...
+:::
+
+::: {.column width="50%"}
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|--------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+| [**MSWR**]{style="color:navy;"}                                | $\mathrm{{660M\over 162B+..}}$    | 0.382%    | \$589    |
+| [**Cook County**]{style="color:black;"}                        | $\mathrm{{783M\over 13B+..}}$     | 0.446%    | \$688    |
+:::
+:::
+
+## How do we calculate tax rate?
+
+We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple)
+
+```{r, echo=FALSE}
+p1_1_cook <- ggplot() +
+  geom_sf(data = shp_bnd_cook) + 
+  geom_sf(data = shp_bnd_chicago) +
+  geom_sf(data = shp_bnd_riverside, fill = "#6a3d9a") +
+  theme_void()
+```
+```{r, fig.width=8, fig.height=6}
+
+p1_1_cook
+
+```
+
+
+
+We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"}
+
+```{r, echo=FALSE}
+p1_1_riverside_pin <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  theme_void()
+```
+
+
+```{r, fig.width=8, fig.height=6}
+
+p1_1_riverside_pin
+
+```
+
+\
+
+Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was [**\$6mil**]{style="color:purple;"} in 2021.)
+
+```{r, echo=FALSE, warning=FALSE}
+
+p1_1_riverside_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white",
+    alpha = 0.75
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void()
+```
+
+```{r, fig.width=8, fig.height=6, warning=FALSE}
+p1_1_riverside_base
+
+```
+
+
+\
+
+Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**\$550K**]{style="color:red;"}, your taxable value (EAV) is [**154k**]{style="color:red;"}. (how is this calculated).
+
+```{r, echo=FALSE, fig.width=8, fig.height=6, warning=FALSE}
+(p1_1_elem_dist_levy <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
+
+
+```{r, fig.width=8, fig.height=6, warning=FALSE}
+
+p1_1_elem_dist_levy
+
+```
+
+\
+
+The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**319 million**]{style="color:fuchsia;"} )
+
+```{r, echo=FALSE, warning=FALSE}
+p1_1_elem_dist_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void()
+```
+
+```{r, fig.width=8, fig.height=6}
+
+p1_1_elem_dist_base
+
+```
+
+
+
+To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: Levy /Base = Tax rate
+
+\
+
+```{r, echo=FALSE, warning=FALSE}
+p1_1_township_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_township_pins,
+    fill = "#b2df8a",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_township,
+    color = "#33a02c",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void()
+```
+
+```{r, fig.width=8, fig.height=6}
+
+p1_1_township_base
+
+```
+
+
+\
+
+Using real numbers, the tax rate equals: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
+
+## How much of this tax rate do you pay?
+
+This **rate** is then applied to your **property's taxable value**:
+
+The rate and tax amount then appear as a line item on your tax bill:
+
+| District                                          | Levy/Base                 | 2021 Rate | 2021 Tax |
+|-------------------------------|---------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"} | $\mathrm{{6M\over 319M}}$ | 1.857%    | \$2,865  |
+
+But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
+
+There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**\~\$27M**]{style="color:orange;"}
+
+Picture
+
+It adds another line item to your tax bill...
+
+| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+
+You must also pay [**Riverside Township**]{style="color:green;"}
+
+Picture
+
+| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}             | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+
+And [**Brookfield High School District 208**]{style="color:blue;"}
+
+Picture
+
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|--------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+
+And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
+
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|--------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+
+Picture
+
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|--------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+
+And so on:
+
+Picture
+
+| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
+|--------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+| [**MSWR**]{style="color:navy;"}                                | $\mathrm{{660M\over 162B+..}}$    | 0.382%    | \$589    |
+| [**Cook County**]{style="color:black;"}                        | $\mathrm{{783M\over 13B+..}}$     | 0.446%    | \$688    |
+
+## Now let's compare this to the bill above
+
+When reorganized, our bill matches the real bill
+
+Picture
+
+Except there are more districts on the real bill...
+
+::: footer
+Learn more: [Cook County Assessor's Office](https://www.cookcountyassessor.com/)
+:::
