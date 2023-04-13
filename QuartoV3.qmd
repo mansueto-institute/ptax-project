@@ -108,6 +108,18 @@ shp_bnd_hs_dist_pins <- read_sf(glue(
   filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_elem_dist)))) %>%
   filter(is.na(as.logical(st_intersects(st_centroid(.), shp_bnd_township))))
 
+shp_bnd_cc_dist <- read_sf(glue(
+  "https://datacatalog.cookcountyil.gov/resource/",
+  "b8q9-dfei.geojson?MAX_AGENCY=TRITON%20COMM%20COLL%20DISTR%20504"
+))
+
+shp_bnd_hs_diff <- shp_bnd_hs_dist %>%
+  st_difference(shp_bnd_township)
+shp_bnd_township_diff <- shp_bnd_township %>%
+  st_difference(shp_bnd_elem_dist)
+shp_bnd_elem_diff <- shp_bnd_elem_dist %>%
+  st_difference(shp_bnd_riverside)
+
 ```
 
 ![](chicago.jpeg)
@@ -151,24 +163,26 @@ First, let's take a look at tax rates...
 We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple)
 
 ```{r, echo=FALSE}
-p1_1_cook <- ggplot() +
+(p1_1_cook <- ggplot() +
   geom_sf(data = shp_bnd_cook) + 
   geom_sf(data = shp_bnd_chicago) +
   geom_sf(data = shp_bnd_riverside, fill = "#6a3d9a") +
-  theme_void()
+  theme_void())
 ```
-```{r, fig.width=8, fig.height=6}
 
-p1_1_cook
 
-```
 
 
 
 We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"}
 
+Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was [**\$6mil**]{style="color:purple;"} in 2021.)
+
+
+Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**\$550K**]{style="color:red;"}, your taxable value (EAV) is [**154k**]{style="color:red;"}. (how is this calculated).
+
 ```{r, echo=FALSE}
-p1_1_riverside_pin <- ggplot() +
+(p1_1_riverside_pin <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
@@ -181,23 +195,17 @@ p1_1_riverside_pin <- ggplot() +
     fill = "transparent",
     linewidth = 1
   ) +
-  theme_void()
-```
-
-
-```{r, fig.width=8, fig.height=6}
-
-p1_1_riverside_pin
-
+  theme_void())
 ```
 
 \
 
-Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was [**\$6mil**]{style="color:purple;"} in 2021.)
+The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**319 million**]{style="color:fuchsia;"} )
+To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: 
 
-```{r, echo=FALSE, warning=FALSE}
+```{r, echo=FALSE}
 
-p1_1_riverside_base <- ggplot() +
+(p1_1_riverside_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
@@ -216,20 +224,62 @@ p1_1_riverside_base <- ggplot() +
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void()
+  theme_void())
 ```
 
-```{r, fig.width=8, fig.height=6, warning=FALSE}
-p1_1_riverside_base
 
+
+\
+
+
+Using real numbers, the tax rate equals: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
+
+## How much of this tax rate do you pay?
+
+This **rate** is then applied to your **property's taxable value**:
+
+The rate and tax amount then appear as a line item on your tax bill:
+
+| District                                          | Levy/Base                 | 2021 Rate | 2021 Tax |
+|-------------------------------|---------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"} | $\mathrm{{6M\over 319M}}$ | 1.857%    | \$2,865  |
+
+But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
+
+
+```{r, echo=FALSE}
+
+(p1_1_riverside_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white",
+    alpha = 0.75
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
 ```
 
 
 \
 
-Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**\$550K**]{style="color:red;"}, your taxable value (EAV) is [**154k**]{style="color:red;"}. (how is this calculated).
 
-```{r, echo=FALSE, fig.width=8, fig.height=6, warning=FALSE}
+
+There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**\~\$27M**]{style="color:orange;"}
+
+
+```{r, echo=FALSE}
 (p1_1_elem_dist_levy <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -258,18 +308,20 @@ Let's zoom in even further. If you are a [**property owner**]{style="color:red;"
 ```
 
 
-```{r, fig.width=8, fig.height=6, warning=FALSE}
-
-p1_1_elem_dist_levy
-
-```
-
 \
 
-The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**319 million**]{style="color:fuchsia;"} )
 
-```{r, echo=FALSE, warning=FALSE}
-p1_1_elem_dist_base <- ggplot() +
+It adds another line item to your tax bill...
+
+| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
+|-------------------------------|----------------|-------------|-------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
+| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+
+
+
+```{r, echo=FALSE}
+(p1_1_elem_dist_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
@@ -298,23 +350,18 @@ p1_1_elem_dist_base <- ggplot() +
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void()
-```
-
-```{r, fig.width=8, fig.height=6}
-
-p1_1_elem_dist_base
-
+  theme_void())
 ```
 
 
-
-To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: Levy /Base = Tax rate
 
 \
 
-```{r, echo=FALSE, warning=FALSE}
-p1_1_township_base <- ggplot() +
+You must also pay [**Riverside Township**]{style="color:green;"}
+
+
+```{r, echo=FALSE}
+(p1_1_township_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
@@ -354,46 +401,11 @@ p1_1_township_base <- ggplot() +
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void()
-```
-
-```{r, fig.width=8, fig.height=6}
-
-p1_1_township_base
-
+  theme_void())
 ```
 
 
-\
 
-Using real numbers, the tax rate equals: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
-
-## How much of this tax rate do you pay?
-
-This **rate** is then applied to your **property's taxable value**:
-
-The rate and tax amount then appear as a line item on your tax bill:
-
-| District                                          | Levy/Base                 | 2021 Rate | 2021 Tax |
-|-------------------------------|---------------|-------------|-------------|
-| [**Village of Riverside**]{style="color:purple;"} | $\mathrm{{6M\over 319M}}$ | 1.857%    | \$2,865  |
-
-But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
-
-There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**\~\$27M**]{style="color:orange;"}
-
-Picture
-
-It adds another line item to your tax bill...
-
-| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-------------------------------|----------------|-------------|-------------|
-| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-
-You must also pay [**Riverside Township**]{style="color:green;"}
-
-Picture
 
 | District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
 |-------------------------------|----------------|-------------|-------------|
@@ -401,9 +413,72 @@ Picture
 | [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
 | [**Riverside Township**]{style="color:green;"}             | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
 
+
+
+\
+
+
 And [**Brookfield High School District 208**]{style="color:blue;"}
 
-Picture
+```{r, echo=FALSE}
+(p1_1_hs_dist_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_township_pins,
+    fill = "#b2df8a",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_dist_pins,
+    fill = "#a6cee3",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_township,
+    color = "#33a02c",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_dist,
+    color = "#1f78b4",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  coord_sf(clip = "off") +
+  theme_void())
+```
+
+
+\
+
 
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
 |--------------------------------|----------------|-------------|-------------|
@@ -414,15 +489,51 @@ Picture
 
 And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
 
-| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
-|--------------------------------|----------------|-------------|-------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
-| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
 
-Picture
+```{r, echo=FALSE}
+(p1_1_cc_dist <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_cc_dist,
+    color = "#e31a1c",
+    fill = "#fb9a99",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_diff,
+    color = "#1f78b4",
+    fill = "#a6cee3",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_township_diff,
+    color = "#33a02c",
+    fill = "#b2df8a",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_diff,
+    color = "#ff7f00",
+    fill = "#fdbf6f",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "#cab2d6",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  coord_sf(clip = "off") +
+  theme_void())
+```
+
+
 
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
 |--------------------------------|----------------|-------------|-------------|
@@ -434,7 +545,6 @@ Picture
 
 And so on:
 
-Picture
 
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
 |--------------------------------|----------------|-------------|-------------|
@@ -450,7 +560,7 @@ Picture
 
 When reorganized, our bill matches the real bill
 
-Picture
+...
 
 Except there are more districts on the real bill...
 
