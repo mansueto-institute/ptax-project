@@ -3,6 +3,8 @@ library(here)
 library(ptaxsim)
 setwd("/users/monicanimmagadda/ptax-project")
 source('ptax_sim_functions.R')
+source('maps.R')
+
 # set the house we want and example districts
 pin_14 <- "15361000280000"
 year = 2021
@@ -14,10 +16,6 @@ colnames(df) <- col_names
 
 df <- populate_df(df, districts, year, pin_14)
 df <- format_df(df)
-```
-
-```{r}
-source('maps.R')
 ```
 
 ![](chicago.jpeg)
