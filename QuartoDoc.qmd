@@ -1,21 +1,40 @@
-
 ```{r setup, include=FALSE}
+library(here)
+library(ptaxsim)
 setwd("/users/monicanimmagadda/ptax-project")
+source('ptax_sim_functions.R')
+# set the house we want and example districts
+pin_14 <- "15361000280000"
+year = 2021
+
+districts = c("VILLAGE OF RIVERSIDE", "SCHOOL DISTRICT 96", "TOWN RIVERSIDE", "RIVERSIDE BROOKFIELD HIGH SCHOOL 208","DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT","TRITON COMMUNITY COLLEGE DISTRICT 504","METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO","COUNTY OF COOK")
+col_names <- c("district", "levy", "base", "rate", "av", "eav", "property_tax")
+df <- data.frame(matrix(ncol = 7, nrow = 0))
+colnames(df) <- col_names
+
+df <- populate_df(df, districts, year, pin_14)
+df <- format_df(df)
 ```
+
+```{r}
+source('maps.R')
+```
+
 ![](chicago.jpeg)
 
 ## Introduction
 
-Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+Cook County relies on property taxes to serve its residents. Find out how your property tax is calculated by reading our guide.
 
-Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+The Cook County Assessor's Office, the State, and county taxing districts (schools, parks, etc.) work together to calculate fair property taxes for residents.
 
-Here is a bunch of text introducing Cook County Assessor's Office and the reasons behind explaining property tax!
+Let's talk a more thorough look at this outline below.
+
+![](outline_pic.png)
 
 ## What are property taxes?
 
-Property taxes are askdjadkjfaskdfjaksjfhasjkfaskjf
-aksdhaksjdfajksfdasdfh
+Property taxes are askdjadkjfaskdfjaksjfhasjkfaskjf aksdhaksjdfajksfdasdfh
 
 ashdklfakjhfcaj
 
@@ -31,38 +50,76 @@ First, let's take a look at tax rates...
 :::
 
 ::: {.column width="50%"}
-![](picture1.png)
-:::
-:::
 
+:::
+:::
 
 ## How do we calculate tax rate?
 
-We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple) ![](picture2.png){width="35%"}
+We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple) 
 
-We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"} ![](picture3.png){width="35%"}
+```{r, echo=FALSE}
+(p1_1_cook <- ggplot() +
+  geom_sf(data = shp_bnd_cook) + 
+  geom_sf(data = shp_bnd_chicago) +
+  geom_sf(data = shp_bnd_riverside, fill = "#6a3d9a") +
+  theme_void())
+```
 
-\
+We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"} 
 
-Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was [**\$6mil**]{style="color:purple;"} in 2021.)
 
-\
+Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)` in 2021.)
 
-Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**\$550K**]{style="color:red;"}, your taxable value (EAV) is [**154k**]{style="color:red;"}. (how is this calculated).
 
-\
 
-![](picture4.png){width="35%"}
+Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
 
-\
+```{r, echo=FALSE}
+(p1_1_riverside_pin <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  theme_void())
+```
 
-The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**319 million**]{style="color:fuchsia;"} )
+The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`**]{style="color:fuchsia;"} )
 
-![](picture5.png){width="35%"} To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: Levy /Base = Tax rate
+To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
+```{r, echo=FALSE}
 
-\
+(p1_1_riverside_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white",
+    alpha = 0.75
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
 
-Using real numbers, the tax rate equals: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
+Using real numbers, the tax rate equals: $\mathrm{{5.9M \over 320M} = 1.84%}$
 
 ## How much of this tax rate do you pay?
 
@@ -70,83 +127,283 @@ This **rate** is then applied to your **property's taxable value**:
 
 The rate and tax amount then appear as a line item on your tax bill:
 
-| District                                          | Levy/Base                 | 2021 Rate | 2021 Tax |
-|-----------------------------|---------------|---------------|---------------|
-| [**Village of Riverside**]{style="color:purple;"} | $\mathrm{{6M\over 319M}}$ | 1.857%    | \$2,865  |
+| District                                          | Levy/Base                     | 2021 Rate          | 2021 Tax               |
+|-----------------------|-----------------|-----------------|-----------------|
+| [**Village of Riverside**]{style="color:purple;"} | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(levy)`/`r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(base)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
+```{r, echo=FALSE}
 
-There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**\~\$27M**]{style="color:orange;"}
-
-![](picture6.png){width="35%"}
+(p1_1_riverside_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white",
+    alpha = 0.75
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#6a3d9a",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
+There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**`r df %>% filter(district == "SCHOOL DISTRICT 96") %>% select(levy)`**]{style="color:orange;"}
+```{r, echo=FALSE}
+(p1_1_elem_dist_levy <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
 
 It adds another line item to your tax bill...
 
-| District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-----------------------------|---------------|---------------|---------------|
-| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
+| District                                                   | Levy/Base                         | 2021 Rate          | 2021 Tax               |
+|-----------------------|-----------------|-----------------|-----------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
+| [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)`               |
 
+```{r, echo=FALSE}
+(p1_1_elem_dist_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
 You must also pay [**Riverside Township**]{style="color:green;"}
 
-![](picture7.png){width="35%"}
-
+```{r, echo=FALSE}
+(p1_1_township_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_township_pins,
+    fill = "#b2df8a",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_township,
+    color = "#33a02c",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  theme_void())
+```
 | District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-----------------------------|---------------|---------------|---------------|
-| [**Village of Riverside**]{style="color:purple;"}          | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"} | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}             | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
+|-----------------------|-----------------|-----------------|-----------------|
+| [**Village of Riverside**]{style="color:purple;"}          | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
+| [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)` 
+| [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
 
 And [**Brookfield High School District 208**]{style="color:blue;"}
-
-![](picture8.png){width="35%"}
+```{r, echo=FALSE}
+(p1_1_hs_dist_base <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_riverside_pins,
+    fill = "#cab2d6",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist_pins,
+    fill = "#fdbf6f",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_township_pins,
+    fill = "#b2df8a",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_dist_pins,
+    fill = "#a6cee3",
+    color = "white"
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_dist,
+    color = "#ff7f00",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_township,
+    color = "#33a02c",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_dist,
+    color = "#1f78b4",
+    fill = "transparent",
+    linewidth = 1
+  ) +
+  geom_sf(
+    data = shp_bnd_example_pin,
+    fill = "#e41a1c"
+  ) +
+  coord_sf(clip = "off") +
+  theme_void())
+```
 
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-----------------------------|--------------|--------------|--------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
+|-----------------------|----------------|----------------|----------------|
+| [**Village of Riverside**]{style="color:purple;"}          | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
+| [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)` 
+| [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
+| [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
 
 And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
-
+```{r, echo=FALSE}
+(p1_1_cc_dist <- ggplot() +
+  annotation_map_tile("cartolight", zoomin = -1) +
+  annotation_scale(location = "br", unit_category = "imperial") +
+  geom_sf(
+    data = shp_bnd_cc_dist,
+    color = "#e31a1c",
+    fill = "#fb9a99",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_hs_diff,
+    color = "#1f78b4",
+    fill = "#a6cee3",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_township_diff,
+    color = "#33a02c",
+    fill = "#b2df8a",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_elem_diff,
+    color = "#ff7f00",
+    fill = "#fdbf6f",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  geom_sf(
+    data = shp_bnd_riverside,
+    color = "#984ea3",
+    fill = "#cab2d6",
+    linewidth = 1,
+    alpha = 0.2
+  ) +
+  coord_sf(clip = "off") +
+  theme_void())
+```
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-----------------------------|--------------|--------------|--------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
-| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
-
-![](picture9.png){width="35%"}
-
-| District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
-|-----------------------------|--------------|--------------|--------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
-| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
+|-----------------------|----------------|----------------|----------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
+| [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)` 
+| [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
+| [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
+| [**Des Plaines Valley Mosquito Abatement District**]{style="color:red;"}                  | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(levy)`/`r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(base)`| `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(rate)`   | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(property_tax)`    |
 
 And so on:
 
-![](picture11.png){width="35%"}
-
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
-|----------------------------|---------------|---------------|---------------|
-| [**Village of Riverside**]{style="color:purple;"}              | $\mathrm{{6M\over 319M}}$         | 1.857%    | \$2,865  |
-| [**Elementary School District 96**]{style="color:orange;"}     | $\mathrm{{27M\over 202M + 319M}}$ | 5.271%    | \$8,132  |
-| [**Riverside Township**]{style="color:green;"}                 | $\mathrm{{616K\over 40M..}}$      | 0.110%    | \$170    |
-| [**Brookfield High School District 208**]{style="color:blue;"} | $\mathrm{{28M\over 305M+..}}$     | 3.234%    | \$4,989  |
-| [**Triton CC Dist. 504**]{style="color:red;"}                  | $\mathrm{{31M\over 10B+..}}$      | 0.315%    | \$485    |
-| [**MSWR**]{style="color:navy;"}                                | $\mathrm{{660M\over 162B+..}}$    | 0.382%    | \$589    |
-| [**Cook County**]{style="color:black;"}                        | $\mathrm{{783M\over 13B+..}}$     | 0.446%    | \$688    |
+|-----------------------|-----------------|-----------------|-----------------|
+| [**Village of Riverside**]{style="color:purple;"}          | $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
+| [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)` 
+| [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
+| [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
+| [**Des Plaines Valley Mosquito Abatement District**]{style="color:red;"}                  | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(levy)`/`r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(base)`| `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(rate)`   | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(property_tax)`    |
+| [**MSWR**]{style="color:navy;"}                                | `r df %>% filter(district=="METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO") %>% select(levy)`/`r df %>% filter(district=="METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO") %>% select(base)`| `r df %>% filter(district=="METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO") %>% select(rate)`   | `r df %>% filter(district=="METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO") %>% select(property_tax)` |
+| [**Cook County**]{style="color:black;"}                        | `r df %>% filter(district=="COUNTY OF COOK") %>% select(levy)`/`r df %>% filter(district=="COUNTY OF COOK") %>% select(base)`| `r df %>% filter(district=="COUNTY OF COOK") %>% select(rate)`   | `r df %>% filter(district=="COUNTY OF COOK") %>% select(property_tax)` |
 
 ## Now let's compare this to the bill above
 
 When reorganized, our bill matches the real bill
-
-![](PicA6.png){width="35%"}
 
 Except there are more districts on the real bill...
 
