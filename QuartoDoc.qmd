@@ -1,7 +1,7 @@
 ```{r setup, include=FALSE}
 library(here)
 library(ptaxsim)
-setwd("/users/monicanimmagadda/ptax-project")
+setwd("~/ptax-project")
 source('ptax_sim_functions.R')
 source('maps.R')
 
@@ -28,7 +28,7 @@ The Cook County Assessor's Office, the State, and county taxing districts (schoo
 
 Let's talk a more thorough look at this outline below.
 
-![](outline_pic.png)
+![](outline_pic_2.png)
 
 ## What are property taxes?
 
@@ -69,7 +69,6 @@ We zoom in to show the taxing district of the [**Village of Riverside**]{style="
 
 
 Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)` in 2021.)
-
 
 
 Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
@@ -131,6 +130,7 @@ The rate and tax amount then appear as a line item on your tax bill:
 | [**Village of Riverside**]{style="color:purple;"} | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(levy)`/`r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(base)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
+
 ```{r, echo=FALSE}
 
 (p1_1_riverside_base <- ggplot() +
@@ -154,7 +154,9 @@ But [**Riverside**]{style="color:purple;"} isn't the only local government you m
   ) +
   theme_void())
 ```
+
 There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**`r df %>% filter(district == "SCHOOL DISTRICT 96") %>% select(levy)`**]{style="color:orange;"}
+
 ```{r, echo=FALSE}
 (p1_1_elem_dist_levy <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
