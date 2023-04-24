@@ -1,6 +1,7 @@
 ```{r setup, include=FALSE}
 library(here)
 library(ptaxsim)
+library(ggplot2)
 setwd("~/ptax-project")
 source('ptax_sim_functions.R')
 source('maps.R')
@@ -19,6 +20,8 @@ df <- format_df(df)
 ```
 
 ![](chicago.jpeg)
+
+
 
 ## Introduction
 
@@ -52,16 +55,21 @@ First, let's take a look at tax rates...
 :::
 :::
 
+
+---
+
+
 ## How do we calculate tax rate?
 
 We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple) 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_cook <- ggplot() +
   geom_sf(data = shp_bnd_cook) + 
   geom_sf(data = shp_bnd_chicago) +
-  geom_sf(data = shp_bnd_riverside, fill = "#6a3d9a") +
-  theme_void())
+  geom_sf(data = shp_bnd_riverside, fill = "#6a3d9a") + 
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"} 
@@ -72,7 +80,9 @@ Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This 
 
 Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
 
-```{r, echo=FALSE}
+---
+
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_riverside_pin <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -82,30 +92,31 @@ Let's zoom in even further. If you are a [**property owner**]{style="color:red;"
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#6a3d9a",
+    color = "#9370DB",
     fill = "transparent",
     linewidth = 1
   ) +
-  theme_void())
+  theme_void() + 
+   theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`**]{style="color:fuchsia;"} )
 
 To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 
 (p1_1_riverside_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white",
     alpha = 0.75
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#6a3d9a",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -113,10 +124,13 @@ To divide the cost of services among all property owners, [**Riverside**]{style=
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 Using real numbers, the tax rate equals: $\mathrm{{5.9M \over 320M} = 1.84%}$
+
+---
 
 ## How much of this tax rate do you pay?
 
@@ -130,20 +144,20 @@ The rate and tax amount then appear as a line item on your tax bill:
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 
 (p1_1_riverside_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white",
     alpha = 0.75
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#6a3d9a",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -151,29 +165,30 @@ But [**Riverside**]{style="color:purple;"} isn't the only local government you m
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**`r df %>% filter(district == "SCHOOL DISTRICT 96") %>% select(levy)`**]{style="color:orange;"}
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_elem_dist_levy <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#984ea3",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_elem_dist,
-    color = "#ff7f00",
+    color = "#FFB347",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -181,7 +196,8 @@ There's also [**Elementary School District 96**]{style="color:orange;"} , which 
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 It adds another line item to your tax bill...
@@ -191,29 +207,29 @@ It adds another line item to your tax bill...
 | [**Village of Riverside**]{style="color:purple;"}          | $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
 | [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)`               |
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_elem_dist_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_elem_dist_pins,
-    fill = "#fdbf6f",
+    fill = "#FFB347",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#984ea3",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_elem_dist,
-    color = "#ff7f00",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -221,44 +237,49 @@ It adds another line item to your tax bill...
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 You must also pay [**Riverside Township**]{style="color:green;"}
 
-```{r, echo=FALSE}
+
+---
+
+
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_township_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_elem_dist_pins,
-    fill = "#fdbf6f",
+    fill = "#FFB347",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_township_pins,
-    fill = "#b2df8a",
+    fill = "#228B22",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#984ea3",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_elem_dist,
-    color = "#ff7f00",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_township,
-    color = "#33a02c",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -266,7 +287,8 @@ You must also pay [**Riverside Township**]{style="color:green;"}
     data = shp_bnd_example_pin,
     fill = "#e41a1c"
   ) +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 | District                                                   | Levy/Base                         | 2021 Rate | 2021 Tax |
 |-----------------------|-----------------|-----------------|-----------------|
@@ -274,52 +296,56 @@ You must also pay [**Riverside Township**]{style="color:green;"}
 | [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)` 
 | [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
 
+
+---
+
+
 And [**Brookfield High School District 208**]{style="color:blue;"}
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_hs_dist_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
   geom_sf(
     data = shp_bnd_riverside_pins,
-    fill = "#cab2d6",
+    fill = "#9370DB",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_elem_dist_pins,
-    fill = "#fdbf6f",
+    fill = "#FFB347",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_township_pins,
-    fill = "#b2df8a",
+    fill = "#228B22",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_hs_dist_pins,
-    fill = "#a6cee3",
+    fill = "#6495ED",
     color = "white"
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#984ea3",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_elem_dist,
-    color = "#ff7f00",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_township,
-    color = "#33a02c",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
   geom_sf(
     data = shp_bnd_hs_dist,
-    color = "#1f78b4",
+    color = "transparent",
     fill = "transparent",
     linewidth = 1
   ) +
@@ -328,7 +354,8 @@ And [**Brookfield High School District 208**]{style="color:blue;"}
     fill = "#e41a1c"
   ) +
   coord_sf(clip = "off") +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
@@ -338,8 +365,12 @@ And [**Brookfield High School District 208**]{style="color:blue;"}
 | [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
 | [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
 
+
+---
+
+
 And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.width=6, fig.height=4}
 (p1_1_cc_dist <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -347,39 +378,40 @@ And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;
     data = shp_bnd_cc_dist,
     color = "#e31a1c",
     fill = "#fb9a99",
-    linewidth = 1,
+    linewidth = 0.1,
     alpha = 0.2
   ) +
   geom_sf(
     data = shp_bnd_hs_diff,
-    color = "#1f78b4",
-    fill = "#a6cee3",
-    linewidth = 1,
-    alpha = 0.2
+    color = "#6495ED",
+    fill = "#6495ED",
+    linewidth = 0.3,
+    alpha = 0
   ) +
   geom_sf(
     data = shp_bnd_township_diff,
-    color = "#33a02c",
-    fill = "#b2df8a",
-    linewidth = 1,
-    alpha = 0.2
+    color = "#228B22",
+    fill = "#228B22",
+    linewidth = 0.5,
+    alpha = 0
   ) +
   geom_sf(
     data = shp_bnd_elem_diff,
-    color = "#ff7f00",
-    fill = "#fdbf6f",
-    linewidth = 1,
-    alpha = 0.2
+    color = "#FFB347",
+    fill = "#FFB347",
+    linewidth = 0.7,
+    alpha = 0
   ) +
   geom_sf(
     data = shp_bnd_riverside,
-    color = "#984ea3",
-    fill = "#cab2d6",
+    color = "#9370DB",
+    fill = "#9370DB",
     linewidth = 1,
-    alpha = 0.2
+    alpha = 0
   ) +
   coord_sf(clip = "off") +
-  theme_void())
+  theme_void() + 
+  theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
 | District                                                       | Levy/Base                         | 2021 Rate | 2021 Tax |
 |-----------------------|----------------|----------------|----------------|
@@ -388,6 +420,9 @@ And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;
 | [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
 | [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
 | [**Des Plaines Valley Mosquito Abatement District**]{style="color:red;"}                  | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(levy)`/`r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(base)`| `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(rate)`   | `r df %>% filter(district=="DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT") %>% select(property_tax)`    |
+
+
+---
 
 And so on:
 
