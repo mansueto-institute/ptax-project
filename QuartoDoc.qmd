@@ -1,7 +1,7 @@
 ```{r setup, include=FALSE}
 library(here)
 library(ptaxsim)
-setwd("~/ptax-project")
+setwd("/users/monicanimmagadda/ptax-project")
 source('ptax_sim_functions.R')
 source('maps.R')
 
@@ -9,6 +9,9 @@ source('maps.R')
 pin_14 <- "15361000280000"
 year = 2021
 
+agency_list <- create_agency_list(agencies)
+agency_df <- filter(agencies, agency_name %in% agency_list)
+# Elementary, municipal, group by agency minor type, rank order based on the agency_total_ext, rank order 
 districts = c("VILLAGE OF RIVERSIDE", "SCHOOL DISTRICT 96", "TOWN RIVERSIDE", "RIVERSIDE BROOKFIELD HIGH SCHOOL 208","DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT","TRITON COMMUNITY COLLEGE DISTRICT 504","METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO","COUNTY OF COOK")
 col_names <- c("district", "levy", "base", "rate", "av", "eav", "property_tax")
 df <- data.frame(matrix(ncol = 7, nrow = 0))
@@ -27,7 +30,6 @@ Cook County relies on property taxes to serve its residents. Find out how your p
 The Cook County Assessor's Office, the State, and county taxing districts (schools, parks, etc.) work together to calculate fair property taxes for residents.
 
 Let's talk a more thorough look at this outline below.
-![](outline_pic_2.jpeg)
 
 ## What are property taxes?
 
@@ -35,6 +37,8 @@ Property tax is a tax assessed on real estate by a government authority, typical
 The tax is used to fund public services such as schools, roads, and emergency services in the local area.
 
 Property owners must pay this tax annually, regardless of whether they own a residential or commercial property.
+
+![](outline_pic_2.png)
 
 ## How do property taxes work?
 
@@ -67,10 +71,11 @@ We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colo
 We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"} 
 
 
-Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)` in 2021.)
+Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district==districts[1]) %>% select(levy)` in 2021.)
 
 
-Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
+
+Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district==districts[1]) %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
 
 ```{r, echo=FALSE}
 (p1_1_riverside_pin <- ggplot() +
@@ -129,7 +134,6 @@ The rate and tax amount then appear as a line item on your tax bill:
 | [**Village of Riverside**]{style="color:purple;"} | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(levy)`/`r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(base)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district == "VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
-
 ```{r, echo=FALSE}
 
 (p1_1_riverside_base <- ggplot() +
@@ -153,9 +157,7 @@ But [**Riverside**]{style="color:purple;"} isn't the only local government you m
   ) +
   theme_void())
 ```
-
 There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**`r df %>% filter(district == "SCHOOL DISTRICT 96") %>% select(levy)`**]{style="color:orange;"}
-
 ```{r, echo=FALSE}
 (p1_1_elem_dist_levy <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +

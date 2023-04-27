@@ -57,13 +57,36 @@ format_df <- function(df){
   df$eav <- scales::label_number(prefix = "$", accuracy=NULL, scale_cut=scales::cut_short_scale())(as.numeric(df$eav))
   df$av <- scales::label_number(prefix = "$", accuracy=NULL, scale_cut=scales::cut_short_scale())(as.numeric(df$av))
   df$property_tax <- scales::label_number(prefix = "$", accuracy=NULL, scale_cut=scales::cut_short_scale())(as.numeric(df$property_tax))
-#   df$levy <- round(df$levy, 1)
-#   df$base <- round(df$base, 2)
-#   df$rate <- round(df$rate, 2)
-#   df$levy <- format(df$levy, scientific = FALSE, big.mark = ",")
-#   df$base <- format(df$base, scientific = FALSE, big.mark = ",")
-#   df$av <- format(df$av, scientific = FALSE, big.mark = ",")
-#   df$eav <- format(df$eav, scientific = FALSE, big.mark = ",")
-#   df$property_tax <- format(df$property_tax, scientific = FALSE, big.mark = ",")
   return(df)
+}
+
+get_highest_ext <- function(df){
+  df %>%
+    group_by(agency_minor_type) %>%
+    slice_max(agency_total_ext)
+}
+
+create_agency_list <- function(df){
+  agency_list <- list()
+  for (name in unique(df$agency_major_type)){
+    options <- df %>% filter(agency_major_type == name)
+    print(options)
+    if (name == 'SCHOOL'){
+      temp <- options %>%
+        arrange(desc(options$agency_total_ext)) %>%
+        slice(1:2)
+      if (nrow(temp)>0){
+        agency_list <- c(agency_list, temp$agency_name[1:2])
+      }
+    } else {
+      temp <- options %>%
+        arrange(desc(options$agency_total_ext)) %>%
+        slice(1:1)
+      print(temp$agency_name[1])
+      if (nrow(temp)>0){
+        agency_list <- c(agency_list, temp$agency_name[1])
+      }
+    }
+  }
+  return (unlist(agency_list))
 }
