@@ -1,19 +1,52 @@
 ```{r setup, include=FALSE}
+
+
+library(DBI)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(ggspatial)
+library(glue)
+library(here)
+library(ptaxsim)
+library(sf)
+library(stringr)
+library(tidyr)
 library(here)
 library(ptaxsim)
 library(ggplot2)
+
+
+ptaxsim_db_conn <- DBI::dbConnect(RSQLite::SQLite(), here("./ptaxsim.db"))
 setwd("~/ptax-project")
 source('ptax_sim_functions.R')
 source('maps.R')
 
+
+
+
+
 # set the house we want and example districts
-pin_14 <- "15361000280000"
+pin_14 <- "10082020060000"
 year = 2021
 
-agency_list <- create_agency_list(agencies)
-agency_df <- filter(agencies, agency_name %in% agency_list)
-# Elementary, municipal, group by agency minor type, rank order based on the agency_total_ext, rank order 
-districts = c("VILLAGE OF RIVERSIDE", "SCHOOL DISTRICT 96", "TOWN RIVERSIDE", "RIVERSIDE BROOKFIELD HIGH SCHOOL 208","DES PLAINES VALLEY MOSQUITO ABATEMENT DISTRICT","TRITON COMMUNITY COLLEGE DISTRICT 504","METRO WATER RECLAMATION DISTRICT OF GREATER CHICAGO","COUNTY OF COOK")
+
+
+
+districts = c('GLENVIEW PARK DISTRICT',
+'OAKTON COMMUNITY COLLEGE DISTRICT',
+'COMMUNITY HIGH SCHOOL',
+'SCHOOL DISTRICT',
+'VILLAGE OF SKOKIE LIBRARY FUND',
+'VILLAGE OF SKOKIE',
+'ROAD AND BRIDGE NILES',
+'GENERAL ASSISTANCE NILES',
+'TOWN NILES',
+'FOREST PRESERVE DISTRICT OF COOK COUNTY',
+'CONSOLIDATED ELECTIONS',
+'COUNTY OF COOK')
+
+
 col_names <- c("district", "levy", "base", "rate", "av", "eav", "property_tax")
 df <- data.frame(matrix(ncol = 7, nrow = 0))
 colnames(df) <- col_names
@@ -22,52 +55,12 @@ df <- populate_df(df, districts, year, pin_14)
 df <- format_df(df)
 ```
 
-![](chicago.jpeg)
 
 
 
-## Introduction
-
-Cook County relies on property taxes to serve its residents. Find out how your property tax is calculated by reading our guide.
-
-The Cook County Assessor's Office, the State, and county taxing districts (schools, parks, etc.) work together to calculate fair property taxes for residents.
-
-Let's talk a more thorough look at this outline below.
-
-## What are property taxes?
-
-Property tax is a tax assessed on real estate by a government authority, typically based on the value of the property. 
-The tax is used to fund public services such as schools, roads, and emergency services in the local area.
-
-Property owners must pay this tax annually, regardless of whether they own a residential or commercial property.
-
-![](outline_pic_2.png)
-
-## How do property taxes work?
-
-::: columns
-::: {.column width="50%"}
-Let's take a look at a **property tax bill**.
-
-This is confusing. Let's zoom out and explain what this all means and how we calculate these numbers.
-
-First, let's take a look at tax rates...
-:::
-
-::: {.column width="50%"}
-
-:::
-:::
-
-
----
-
-
-## How do we calculate tax rate?
-
-We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colored in purple) 
 
 ```{r, echo=FALSE, fig.width=6, fig.height=4}
+
 (p1_1_cook <- ggplot() +
   geom_sf(data = shp_bnd_cook) + 
   geom_sf(data = shp_bnd_chicago) +
@@ -79,15 +72,21 @@ We take a look at the [**Village of Riverside**]{style="color:purple;"} (as colo
 We zoom in to show the taxing district of the [**Village of Riverside**]{style="color:purple;"} 
 
 
-Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district==districts[1]) %>% select(levy)` in 2021.)
+Each year, this taxing district sets a [**levy**]{style="color:purple;"} . This is the amount it needs to collect that year in order to provide services. (This was `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)` in 2021.)
 
 
-
-Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district==districts[1]) %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
+Let's zoom in even further. If you are a [**property owner**]{style="color:red;"} in [**Riverside**]{style="color:purple;"} of a home worth [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(av)`**]{style="color:red;"}, your taxable value (EAV) is [**`r df$eav[1]`**]{style="color:red;"}.
 
 ---
 
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+
+
+
+
+
+
+
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_riverside_pin <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -108,7 +107,8 @@ Let's zoom in even further. If you are a [**property owner**]{style="color:red;"
 The total taxable value of all properties in [**Riverside**]{style="color:purple;"} make up its [**tax base**]{style="color:fuchsia;"} ([**Riverside's**]{style="color:purple;"} tax base is [**`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`**]{style="color:fuchsia;"} )
 
 To divide the cost of services among all property owners, [**Riverside**]{style="color:purple;"} sets its local tax rate equal to: $\mathrm{{Levy \over Base} = Tax \hspace{0.1cm} rate}$
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 
 (p1_1_riverside_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
@@ -149,7 +149,7 @@ The rate and tax amount then appear as a line item on your tax bill:
 
 But [**Riverside**]{style="color:purple;"} isn't the only local government you must pay taxes to...
 
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 
 (p1_1_riverside_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
@@ -173,9 +173,10 @@ But [**Riverside**]{style="color:purple;"} isn't the only local government you m
   theme_void() + 
   theme(plot.caption = element_text(hjust = 0, face = "italic", size = 9)))
 ```
+
 There's also [**Elementary School District 96**]{style="color:orange;"} , which sets its own **levy** of [**`r df %>% filter(district == "SCHOOL DISTRICT 96") %>% select(levy)`**]{style="color:orange;"}
 
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_elem_dist_levy <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -211,7 +212,7 @@ It adds another line item to your tax bill...
 | [**Village of Riverside**]{style="color:purple;"}          | $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(levy)`/ $`r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(base)`     | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(rate)` | `r df %>% filter(district=="VILLAGE OF RIVERSIDE") %>% select(property_tax)` |
 | [**Elementary School District 96**]{style="color:orange;"} | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(levy)`/`r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(base)` | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(rate)`             | `r df %>% filter(district=="SCHOOL DISTRICT 96") %>% select(property_tax)`               |
 
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_elem_dist_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -250,7 +251,7 @@ You must also pay [**Riverside Township**]{style="color:green;"}
 ---
 
 
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_township_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -305,7 +306,7 @@ You must also pay [**Riverside Township**]{style="color:green;"}
 
 
 And [**Brookfield High School District 208**]{style="color:blue;"}
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_hs_dist_base <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -369,12 +370,12 @@ And [**Brookfield High School District 208**]{style="color:blue;"}
 | [**Riverside Township**]{style="color:green;"}             |`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(rate)`| `r df %>% filter(district=="TOWN RIVERSIDE") %>% select(property_tax)`    |
 | [**Brookfield High School District 208**]{style="color:blue;"} |`r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(levy)`/`r df %>% filter(district=="TOWN RIVERSIDE") %>% select(base)`      | `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(rate)`| `r df %>% filter(district=="RIVERSIDE BROOKFIELD HIGH SCHOOL 208") %>% select(property_tax)` |
 
-
 ---
 
 
+
 And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;"}
-```{r, echo=FALSE, fig.width=6, fig.height=4}
+```{r, echo=FALSE, fig.width=6, fig.height=4, message=FALSE}
 (p1_1_cc_dist <- ggplot() +
   annotation_map_tile("cartolight", zoomin = -1) +
   annotation_scale(location = "br", unit_category = "imperial") +
@@ -383,35 +384,35 @@ And the [**Des Plaines Valley Mosquito Abatement District**]{style="color:brown;
     color = "#e31a1c",
     fill = "#fb9a99",
     linewidth = 0.1,
-    alpha = 0.2
+    alpha = 0.5
   ) +
   geom_sf(
     data = shp_bnd_hs_diff,
     color = "#6495ED",
     fill = "#6495ED",
     linewidth = 0.3,
-    alpha = 0
+    alpha = 0.5
   ) +
   geom_sf(
     data = shp_bnd_township_diff,
     color = "#228B22",
     fill = "#228B22",
     linewidth = 0.5,
-    alpha = 0
+    alpha = 0.5
   ) +
   geom_sf(
     data = shp_bnd_elem_diff,
     color = "#FFB347",
     fill = "#FFB347",
     linewidth = 0.7,
-    alpha = 0
+    alpha = 0.5
   ) +
   geom_sf(
     data = shp_bnd_riverside,
     color = "#9370DB",
     fill = "#9370DB",
     linewidth = 1,
-    alpha = 0
+    alpha = 0.5
   ) +
   coord_sf(clip = "off") +
   theme_void() + 
@@ -444,8 +445,15 @@ And so on:
 
 When reorganized, our bill matches the real bill
 
-Except there are more districts on the real bill...
+```{r}
+single_bill <- tax_bill(year_vec = 2020, pin_vec = "15361000280000")
+single_bill %>%
+  select(agency_name, final_tax, agency_tax_rate) %>%
+  mutate(agency_tax_rate = agency_tax_rate * 100) %>%
+  arrange(-row_number()) %>%
+  setNames(c("Agency", "2020 Tax", "2020 Rate")) %>%
+  knitr::kable("html", digits = 3)
 
-::: footer
-Learn more: [Cook County Assessor's Office](https://www.cookcountyassessor.com/)
-:::
+
+```
+
