@@ -1,13 +1,13 @@
 ```{r setup, include=FALSE}
+#Example 3
 library(here)
 library(ptaxsim)
-library(latex2exp)
-
+setwd("/users/monicanimmagadda/ptax-project")
 source('ptax_sim_functions.R')
 source('maps.R')
+library(latex2exp)
 
-# set the house we want and example districts
-pin_14 <- "15361000280000"
+pin_14 <- "17313070150000"
 year = 2021
 tax_code = lookup_tax_code(year, pin_14)
 agencies = lookup_agency(year, tax_code)
@@ -20,20 +20,18 @@ col_names <- c("district", "type", "levy", "base", "rate", "av", "eav", "propert
 df <- data.frame(matrix(ncol = 8, nrow = 0))
 colnames(df) <- col_names
 
-# Selecting top districts
 df <- populate_df(df, districts, year, pin_14)
 df <- format_df(df)
+
 df$agency_minor_type <- factor(df$agency_minor_type, levels = c("COOK", "MUNI", "SCHOOL", "SCHOOL1", "WATER"))
 df <- df[order(df$agency_minor_type), ]
 
-# Creating extra districts to populate at the end
 not_top_agencies <- filter(agencies, !(agencies$agency_name %in% districts))
-df_extra_districts <- data.frame(matrix(ncol=8, nrow=0))
-colnames(df_extra_districts) <- col_names
-df_extra_districts <- populate_df(df_extra_districts, not_top_agencies$agency_name, year, pin_14)
-df_extra_districts <- format_df(df_extra_districts)
+df_extra <- data.frame(matrix(ncol=8, nrow=0))
+colnames(df_extra) <- col_names
+df_extra <- populate_df(df_extra, not_top_agencies$agency_name, year, pin_14)
+df_extra <- format_df(df_extra)
 
-# Taxing Districts to populate tables
 dist_1 <- df$district[1]
 dist_2 <- df$district[2]
 dist_3 <- df$district[3]
@@ -428,8 +426,8 @@ And so on:
 | [**`r dist_3`**]{style="color:green;"} | `r df %>% filter(district==dist_3) %>% select(levy)` / `r df %>% filter(district==dist_3) %>% select(base)` | `r df %>% filter(district==dist_3) %>% select(rate)` | `r df %>% filter(district==dist_3) %>% select(property_tax)` |
 | [**`r dist_4`**]{style="color:blue;"} | `r df %>% filter(district==dist_4) %>% select(levy)` / `r df %>% filter(district==dist_4) %>% select(base)` | `r df %>% filter(district==dist_4) %>% select(rate)` | `r df %>% filter(district==dist_4) %>% select(property_tax)` |
 | [**`r dist_5`**]{style="color:red;"} | `r df %>% filter(district==dist_5) %>% select(levy)` / `r df %>% filter(district==dist_5) %>% select(base)` | `r df %>% filter(district==dist_5) %>% select(rate)` | `r df %>% filter(district==dist_5) %>% select(property_tax)` |
-| [**`r df_extra_districts$district[1]`**]{style="color:navy;"} | `r df_extra_districts %>% filter(district==df_extra_districts$district[1]) %>% select(levy)` / `r df_extra_districts %>% filter(district==df_extra_districts$district[1]) %>% select(base)` | `r df_extra_districts %>% filter(district==df_extra_districts$district[1]) %>% select(rate)` | `r df_extra_districts %>% filter(district==df_extra_districts$district[1]) %>% select(property_tax)` |
-| [**`r df_extra_districts$district[2]`**]{style="color:black;"} | `r df_extra_districts %>% filter(district==df_extra_districts$district[2]) %>% select(levy)` / `r df_extra_districts %>% filter(district==df_extra_districts$district[2]) %>% select(base)` | `r df_extra_districts %>% filter(district==df_extra_districts$district[2]) %>% select(rate)` | `r df_extra_districts %>% filter(district==df_extra_districts$district[2]) %>% select(property_tax)` |
+| [**`r df_extra$district[1]`**]{style="color:navy;"} | `r df_extra %>% filter(district==df_extra$district[1]) %>% select(levy)` / `r df_extra %>% filter(district==df_extra$district[1]) %>% select(base)` | `r df_extra %>% filter(district==df_extra$district[1]) %>% select(rate)` | `r df_extra %>% filter(district==df_extra$district[1]) %>% select(property_tax)` |
+| [**`r df_extra$district[2]`**]{style="color:black;"} | `r df_extra %>% filter(district==df_extra$district[2]) %>% select(levy)` / `r df_extra %>% filter(district==df_extra$district[2]) %>% select(base)` | `r df_extra %>% filter(district==df_extra$district[2]) %>% select(rate)` | `r df_extra %>% filter(district==df_extra$district[2]) %>% select(property_tax)` |
 
 
 ## Now let's compare this to the bill above

@@ -6,13 +6,15 @@ website:
   navbar:
     left:
       - href: QuartoDoc.qmd
-        text: Home
-      - FAQ.qmd
-      - About.qmd
+        text: Suburb
+      - href: Example2.qmd
+        text: North Chicago
+      - href: Example3.qmd
+        text: South Chicago
     logo: "CCAOlogo.jpeg"
+    
 format:
   html:
     theme: zephyr
     css: custom.css
-    toc: True
-      
+    toc: true
